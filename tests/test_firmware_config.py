@@ -386,6 +386,19 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("power_modem", content)
         self.assertIn("isolate_all_for_sleep", content)
 
+    def test_battery_guard_telemetry_and_cutoff(self):
+        header_path = os.path.join(
+            os.path.dirname(__file__), "..", "firmware", "esp32cam", "include", "battery_guard.h"
+        )
+        self.assertTrue(os.path.exists(header_path))
+        with open(header_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("class BatteryGuard", content)
+        self.assertIn("BATTERY_CRITICAL_ABORT", content)
+        self.assertIn("BATTERY_LOW_WARNING", content)
+        self.assertIn("evaluate_safety", content)
+
 
 if __name__ == "__main__":
     unittest.main()
