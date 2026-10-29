@@ -1,0 +1,51 @@
+name: Feature Request
+description: Propose a new feature, analyzer metric, or architectural improvement.
+title: "[FEAT]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please refer to `docs/ISSUES_SEED.md` before opening new feature requests, as your idea may already be mapped out!
+  - type: dropdown
+    id: component
+    attributes:
+      label: Target Component
+      options:
+        - "contracts (Soroban Rust)"
+        - "attester-a (Python CV)"
+        - "attester-b (Rust CV)"
+        - "firmware (ESP32-CAM)"
+        - "dashboard (Frontend)"
+        - "tools & simulation"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a specific limitation or user workflow?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: Detailed description of what you want to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you've evaluated.
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Suggested Priority Tier
+      options:
+        - "P0 (Core Protocol Integrity)"
+        - "P1 (Verification / Quality / Attestation)"
+        - "P2 (Ecosystem / Developer Experience)"
+    validations:
+      required: true

@@ -1,0 +1,62 @@
+name: Bug Report
+description: Report a reproducible bug or unexpected behavior in Proof-of-Weeding.
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please check existing issues first to avoid duplicates.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the protocol or monorepo is affected?
+      options:
+        - "contracts/evidence_registry"
+        - "contracts/work_escrow"
+        - "attester-a (Python/Flask)"
+        - "attester-b (Rust/CLI)"
+        - "tools (synthetic-scenes, simulator, pow-verify)"
+        - "firmware (esp32cam)"
+        - "dashboard (React/Vite)"
+        - "documentation / specs"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Precise steps or commands to reproduce the error.
+      placeholder: |
+        1. Run `python scripts/e2e_sim.py`
+        2. Execute `...`
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Log Output or Stack Trace
+      render: shell
+  - type: checkboxes
+    id: clean_room_acknowledgement
+    attributes:
+      label: Clean-Room & Integrity Acknowledgement
+      options:
+        - label: I confirm this issue does NOT paste third-party copyrighted datasets or model weights.
+          required: true
