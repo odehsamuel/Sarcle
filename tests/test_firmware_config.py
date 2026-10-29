@@ -62,6 +62,28 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("BOARD_NAME", content)
         self.assertIn("STATUS_LED_PIN", content)
 
+    def test_camera_hal_architecture(self):
+        hal_path = os.path.join(self.firmware_dir, "include", "camera_hal.h")
+        self.assertTrue(os.path.exists(hal_path))
+        with open(hal_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Dynamic sensor detection
+        self.assertIn("SENSOR_OV2640", content)
+        self.assertIn("SENSOR_OV5640", content)
+
+        # Size constraint (< 64 KB)
+        self.assertIn("MAX_FRAME_SIZE_BYTES", content)
+        self.assertIn("64 * 1024", content)
+
+        # Ensure main.cpp integrates camera_hal
+        with open(self.main_path, "r", encoding="utf-8") as f:
+            main_content = f.read()
+
+        self.assertIn('#include "camera_hal.h"', main_content)
+        self.assertIn("camera_hal.capture", main_content)
+        self.assertIn("camera_hal.init", main_content)
+
 
 if __name__ == "__main__":
     unittest.main()

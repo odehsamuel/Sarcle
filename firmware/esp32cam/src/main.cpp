@@ -28,10 +28,12 @@
 #endif
 
 #include "board_pins.h"
+#include "camera_hal.h"
 
 #define DOMAIN_TAG "PoW-OBS-v2" // 10 bytes ASCII
 #define CANONICAL_MSG_LEN 115
 
+CameraHAL camera_hal;
 Preferences prefs;
 uint8_t device_pk[32];
 uint8_t device_sk[32];
@@ -81,38 +83,7 @@ void init_keys_and_counter() {
 }
 
 bool init_camera() {
-    camera_config_t config;
-    config.ledc_channel = LEDC_CHANNEL_0;
-    config.ledc_timer = LEDC_TIMER_0;
-    config.pin_d0 = Y2_GPIO_NUM;
-    config.pin_d1 = Y3_GPIO_NUM;
-    config.pin_d2 = Y4_GPIO_NUM;
-    config.pin_d3 = Y5_GPIO_NUM;
-    config.pin_d4 = Y6_GPIO_NUM;
-    config.pin_d5 = Y7_GPIO_NUM;
-    config.pin_d6 = Y8_GPIO_NUM;
-    config.pin_d7 = Y9_GPIO_NUM;
-    config.pin_xclk = XCLK_GPIO_NUM;
-    config.pin_pclk = PCLK_GPIO_NUM;
-    config.pin_vsync = VSYNC_GPIO_NUM;
-    config.pin_href = HREF_GPIO_NUM;
-    config.pin_sccb_sda = SIOD_GPIO_NUM;
-    config.pin_sccb_scl = SIOC_GPIO_NUM;
-    config.pin_pwdn = PWDN_GPIO_NUM;
-    config.pin_reset = RESET_GPIO_NUM;
-    config.xclk_freq_hz = 20000000;
-    config.pixel_format = PIXFORMAT_JPEG;
-    config.frame_size = FRAMESIZE_VGA; // 640x480
-    config.jpeg_quality = 12; // 0-63, lower is higher quality
-    config.fb_count = 1;
-
-    esp_err_t err = esp_camera_init(&config);
-    if (err != ESP_OK) {
-        Serial.printf("[CAM] Camera init failed with error 0x%x\n", err);
-        return false;
-    }
-    Serial.println("[CAM] OV2640 camera initialized successfully (VGA 640x480).");
-    return true;
+    return camera_hal.init(FRAMESIZE_VGA, 12);
 }
 
 void sync_ntp_time() {
@@ -205,7 +176,11 @@ void setup() {
     digitalWrite(STATUS_LED_PIN, !LED_ACTIVE_LEVEL);
 
     init_keys_and_counter();
-    init_camera();
+    if (!init_camera()) {
+        Serial.println("[FATAL] Camera HAL init failed! Halting.");
+    } else {
+        Serial.printf("[BOOT] Camera HAL ready: %s\n", camera_hal.get_sensor_name());
+    }
 
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     Serial.printf("[WIFI] Connecting to %s", WIFI_SSID);
@@ -228,16 +203,16 @@ void loop() {
         return;
     }
 
-    camera_fb_t* fb = esp_camera_fb_get();
-    if (!fb) {
-        Serial.println("[ERR] Camera frame capture failed.");
+    CameraCaptureResult cap = camera_hal.capture(MAX_FRAME_SIZE_BYTES);
+    if (!cap.success) {
+        Serial.printf("[ERR] Camera frame capture rejected: %s\n", cap.error_msg);
         delay(5000);
         return;
     }
-    Serial.printf("[CAM] Captured frame: %zu bytes\n", fb->len);
+    Serial.printf("[CAM] Captured frame: %zu bytes (validated < %d bytes)\n", cap.length, MAX_FRAME_SIZE_BYTES);
 
     uint8_t image_sha256[32];
-    mbedtls_sha256(fb->buf, fb->len, image_sha256, 0);
+    mbedtls_sha256(cap.buffer, cap.length, image_sha256, 0);
     print_hex("[CRYPTO] Image SHA-256: ", image_sha256, 32);
 
     monotonic_counter++;
@@ -253,7 +228,7 @@ void loop() {
 
     Serial.println("[NET] Posting evidence payload to Attester A...");
     // Multipart POST implementation
-    esp_camera_fb_return(fb);
+    camera_hal.release(cap.fb);
 
     Serial.println("[SUCCESS] Capture sequence complete. Sleeping...");
     delay(60000); // 1 minute interval
