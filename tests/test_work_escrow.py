@@ -16,6 +16,7 @@ from ed25519_compact import publickey
 class TestWorkEscrowContract(unittest.TestCase):
     def setUp(self):
         self.registry = EvidenceRegistryMock()
+        self.registry.current_timestamp = 1700000000
         self.escrow = WorkEscrowMock(self.registry)
 
         self.admin = "G_ADMIN"
@@ -240,3 +241,113 @@ class TestWorkEscrowContract(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_regrowth_boundary_cases(self):
+        # Setup job in CompletionPaid state with 200,000 retainage, max_regrowth = 500 bps
+        job_id = self.escrow.create_job(self.default_params)
+        self.registry.observations[501] = {
+            "obs_id": 501,
+            "job_ref": job_id,
+            "kind": 0,
+            "device_id": self.device_pk,
+            "image_hash": b"\x51" * 32,
+            "roi_hash": self.roi_hash,
+            "metric_id": 1,
+            "timestamp": 1700001000,
+            "status": "Accepted",
+            "accepted_value_bps": 6000,
+        }
+        self.escrow.attach_observation(self.farmer, job_id, 501)
+
+        # Completion = 1000 bps
+        self.registry.observations[502] = {
+            "obs_id": 502,
+            "job_ref": job_id,
+            "kind": 1,
+            "device_id": self.device_pk,
+            "image_hash": b"\x52" * 32,
+            "roi_hash": self.roi_hash,
+            "metric_id": 1,
+            "timestamp": 1700002000,
+            "status": "Accepted",
+            "accepted_value_bps": 1000,
+        }
+        self.escrow.attach_observation(self.worker, job_id, 502)
+        self.registry.current_timestamp = 1700002000 + 3601
+        self.escrow.finalize_completion(job_id)
+        self.assertEqual(
+            self.escrow.get_job(job_id)["state"], "CompletionPaid"
+        )
+
+        # Case A: Exactly at max regrowth: 1000 + 500 = 1500 bps -> Worker gets retainage
+        self.registry.current_timestamp += 86400 + 10
+        self.registry.observations[503] = {
+            "obs_id": 503,
+            "job_ref": job_id,
+            "kind": 2,
+            "device_id": self.device_pk,
+            "image_hash": b"\x53" * 32,
+            "roi_hash": self.roi_hash,
+            "metric_id": 1,
+            "timestamp": self.registry.current_timestamp,
+            "status": "Accepted",
+            "accepted_value_bps": 1500,
+        }
+        self.escrow.attach_observation(self.worker, job_id, 503)
+        self.escrow.finalize_followup(job_id)
+        job_a = self.escrow.get_job(job_id)
+        self.assertEqual(job_a["paid_to_worker"], 1_000_000)
+        self.assertEqual(job_a["refunded_to_farmer"], 0)
+
+    def test_regrowth_one_point_over_refunds_retainage_to_farmer(self):
+        job_id = self.escrow.create_job(self.default_params)
+        self.registry.observations[601] = {
+            "obs_id": 601,
+            "job_ref": job_id,
+            "kind": 0,
+            "device_id": self.device_pk,
+            "image_hash": b"\x61" * 32,
+            "roi_hash": self.roi_hash,
+            "metric_id": 1,
+            "timestamp": 1700001000,
+            "status": "Accepted",
+            "accepted_value_bps": 6000,
+        }
+        self.escrow.attach_observation(self.farmer, job_id, 601)
+
+        self.registry.observations[602] = {
+            "obs_id": 602,
+            "job_ref": job_id,
+            "kind": 1,
+            "device_id": self.device_pk,
+            "image_hash": b"\x62" * 32,
+            "roi_hash": self.roi_hash,
+            "metric_id": 1,
+            "timestamp": 1700002000,
+            "status": "Accepted",
+            "accepted_value_bps": 1000,
+        }
+        self.escrow.attach_observation(self.worker, job_id, 602)
+        self.registry.current_timestamp = 1700002000 + 3601
+        self.escrow.finalize_completion(job_id)
+
+        # Regrowth is 1000 + 501 = 1501 bps (exceeds max_regrowth_bps=500)
+        self.registry.current_timestamp += 86400 + 10
+        self.registry.observations[603] = {
+            "obs_id": 603,
+            "job_ref": job_id,
+            "kind": 2,
+            "device_id": self.device_pk,
+            "image_hash": b"\x63" * 32,
+            "roi_hash": self.roi_hash,
+            "metric_id": 1,
+            "timestamp": self.registry.current_timestamp,
+            "status": "Accepted",
+            "accepted_value_bps": 1501,
+        }
+        self.escrow.attach_observation(self.farmer, job_id, 603)
+        self.escrow.finalize_followup(job_id)
+        job_b = self.escrow.get_job(job_id)
+        # Worker only keeps initial 800,000, 200,000 retainage refunded to farmer
+        self.assertEqual(job_b["paid_to_worker"], 800_000)
+        self.assertEqual(job_b["refunded_to_farmer"], 200_000)
