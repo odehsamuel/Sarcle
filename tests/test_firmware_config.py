@@ -294,6 +294,19 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertTrue(res["registered_on_chain"])
         self.assertEqual(len(res["device_id_hex"]), 64)
 
+    def test_anti_rollback_guard_header(self):
+        header_path = os.path.join(
+            os.path.dirname(__file__), "..", "firmware", "esp32cam", "include", "anti_rollback.h"
+        )
+        self.assertTrue(os.path.exists(header_path))
+        with open(header_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("class AntiRollbackGuard", content)
+        self.assertIn("ARB_ERR_VERSION_DOWNGRADE", content)
+        self.assertIn("commit_new_security_version", content)
+        self.assertIn("verify_app_security_version", content)
+
 
 if __name__ == "__main__":
     unittest.main()
