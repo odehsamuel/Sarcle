@@ -427,6 +427,16 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("120", content)
         self.assertIn("LiFePO4", content)
 
+    def test_enclosure_spec_ip67(self):
+        spec_path = os.path.join(os.path.dirname(__file__), "..", "hardware", "mechanical", "ENCLOSURE_SPEC.md")
+        self.assertTrue(os.path.exists(spec_path))
+        with open(spec_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("IP67", content)
+        self.assertIn("Polycarbonate", content)
+        self.assertIn("Borosilicate", content)
+        self.assertIn("Hydrophobic", content)
+
 
 if __name__ == "__main__":
     unittest.main()
