@@ -96,6 +96,10 @@ def run_e2e_simulation():
         separators=(",", ":"),
     ).encode("utf-8")
     roi_hash = hashlib.sha256(canonical_roi_json).digest()
+    roi_dir = os.path.join(os.path.dirname(__file__), "..", "attester-a", "storage", "rois")
+    os.makedirs(roi_dir, exist_ok=True)
+    with open(os.path.join(roi_dir, f"{roi_hash.hex()}.json"), "wb") as f:
+        f.write(canonical_roi_json)
 
     # 2. Farmer creates job in WorkEscrow
     now = chain.registry_mock.current_timestamp
@@ -278,6 +282,50 @@ def run_e2e_simulation():
     assert job_settled["state"] == "Settled"
     assert job_settled["paid_to_worker"] == 100_000
     assert job_settled["refunded_to_farmer"] == 0
+
+    # Save observations and image bitstreams for pow-verify
+    obs_log_path = os.path.join(os.path.dirname(__file__), "..", "attester-a", "storage", "observations.json")
+    img_dir = os.path.join(os.path.dirname(__file__), "..", "attester-a", "storage", "images")
+    os.makedirs(img_dir, exist_ok=True)
+
+    with open(os.path.join(img_dir, f"{img_base_hash.hex()}.jpg"), "wb") as f:
+        f.write(jpeg_base)
+    with open(os.path.join(img_dir, f"{img_comp_hash.hex()}.jpg"), "wb") as f:
+        f.write(jpeg_comp)
+    with open(os.path.join(img_dir, f"{img_fol_hash.hex()}.jpg"), "wb") as f:
+        f.write(jpeg_fol)
+
+    obs_records = [
+        {
+            "obs_id": obs_id_1,
+            "job_ref": job_id,
+            "kind": 0,
+            "roi_hash_hex": roi_hash.hex(),
+            "image_sha256_hex": img_base_hash.hex(),
+            "status": obs_1["status"],
+            "accepted_value_bps": obs_1["accepted_value_bps"],
+        },
+        {
+            "obs_id": obs_id_2,
+            "job_ref": job_id,
+            "kind": 1,
+            "roi_hash_hex": roi_hash.hex(),
+            "image_sha256_hex": img_comp_hash.hex(),
+            "status": obs_2["status"],
+            "accepted_value_bps": obs_2["accepted_value_bps"],
+        },
+        {
+            "obs_id": obs_id_3,
+            "job_ref": job_id,
+            "kind": 2,
+            "roi_hash_hex": roi_hash.hex(),
+            "image_sha256_hex": img_fol_hash.hex(),
+            "status": obs_3["status"],
+            "accepted_value_bps": obs_3["accepted_value_bps"],
+        },
+    ]
+    with open(obs_log_path, "w", encoding="utf-8") as f:
+        json.dump(obs_records, f, indent=2)
 
     logger.info("==================================================")
     logger.info("SIMULATION COMPLETED SUCCESSFULLY - ALL STAGES PASS")

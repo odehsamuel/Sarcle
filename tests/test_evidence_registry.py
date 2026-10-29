@@ -12,6 +12,7 @@ from ed25519_compact import publickey, signature
 class TestEvidenceRegistryContract(unittest.TestCase):
     def setUp(self):
         self.registry = EvidenceRegistryMock()
+        self.registry.current_timestamp = 1700000000
         self.admin = "G_ADMIN_123"
         self.attester_a = "G_ATTESTER_A"
         self.attester_b = "G_ATTESTER_B"

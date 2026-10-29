@@ -32,7 +32,18 @@ class EvidenceRegistryMock:
         self.observations: Dict[int, Dict] = {}  # obs_id -> record
         self.next_obs_id: int = 1
         self.events: List[Tuple[str, Tuple]] = []
-        self.current_timestamp: int = 1700000000
+        self._manual_timestamp: Optional[int] = None
+
+    @property
+    def current_timestamp(self) -> int:
+        if self._manual_timestamp is not None:
+            return self._manual_timestamp
+        import time
+        return int(time.time())
+
+    @current_timestamp.setter
+    def current_timestamp(self, ts: int):
+        self._manual_timestamp = ts
 
     def init(self, admin: str, config: Optional[Dict] = None):
         if self.admin is not None:

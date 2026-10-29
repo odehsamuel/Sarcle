@@ -63,6 +63,7 @@ class EdgeDeviceSimulator:
         exposure_multiplier: float = 1.0,
         dx: int = 0,
         dy: int = 0,
+        timestamp: Optional[int] = None,
     ) -> Tuple[bytes, bytes, bytes, int]:
         """Capture synthetic frame, assemble 115-byte message, and compute Ed25519 signature.
 
@@ -70,7 +71,7 @@ class EdgeDeviceSimulator:
             (raw_message, signature, jpeg_bytes, exact_ground_truth_bps)
         """
         self.counter += 1
-        now = int(time.time())
+        now = int(time.time()) if timestamp is None else timestamp
 
         # Render synthetic camera scene
         jpeg_bytes, _, gt_bps = generate_scene(
