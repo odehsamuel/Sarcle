@@ -468,6 +468,21 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("disable_jtag_efuse.py", content)
         self.assertIn("Depression Angle", content)
 
+    def test_solar_power_simulator_cli(self):
+        sim_path = os.path.join(os.path.dirname(__file__), "..", "tools", "hardware-sim", "solar_power_simulator.py")
+        self.assertTrue(os.path.exists(sim_path))
+        sys.path.insert(0, os.path.dirname(sim_path))
+        from solar_power_simulator import SolarPowerSimulator
+
+        sim = SolarPowerSimulator(panel_watts=3.0, battery_mah=1500.0, captures_per_day=4)
+        daily = sim.calculate_daily_consumption()
+        self.assertLess(daily["average_current_ma"], 1.5)  # Enforce < 1.5 mA requirement
+        self.assertGreater(daily["daily_consumption_mah"], 0.1)
+
+        sim_streak = sim.simulate_consecutive_cloud_days(cloud_days=14)
+        self.assertGreater(sim_streak["autonomy_days_zero_sun"], 15.0)  # > 15 days autonomy with 1500mAh
+        self.assertFalse(sim_streak["brownout_occurred_during_streak"])
+
 
 if __name__ == "__main__":
     unittest.main()
