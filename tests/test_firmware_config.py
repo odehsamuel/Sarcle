@@ -333,6 +333,20 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("AT+QIACT", content)
         self.assertIn("AT+QHTTPPOST", content)
 
+    def test_sim7080g_driver_and_apn_profiles(self):
+        header_path = os.path.join(
+            os.path.dirname(__file__), "..", "firmware", "esp32cam", "include", "modem_sim7080g.h"
+        )
+        self.assertTrue(os.path.exists(header_path))
+        with open(header_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("class SIM7080GModem : public ICellularModem", content)
+        self.assertIn("KNOWN_APN_PROFILES", content)
+        self.assertIn("soracom.io", content)
+        self.assertIn("iot.1nce.net", content)
+        self.assertIn("AT+SHREQ", content)
+
 
 if __name__ == "__main__":
     unittest.main()
