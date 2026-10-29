@@ -1,0 +1,98 @@
+{
+  "calibration_metadata": {
+    "synthetic_only": true,
+    "justification": "Tolerance is necessary because DCT quantization in JPEG decoders, integer rounding, and differing colorimetric transformations (chromaticity ExG vs CIELAB fixed-point a*) introduce minor boundary variances on sub-pixel vegetation edges."
+  },
+  "statistics": {
+    "num_scenes": 50,
+    "mean_divergence_bps": 152.3,
+    "median_divergence_bps": 74.5,
+    "max_divergence_bps": 1469,
+    "percentile_95_bps": 491.5499999999995,
+    "percentile_99_bps": 1146.5799999999986,
+    "max_permitted_by_protocol": 500,
+    "all_within_tolerance": false
+  },
+  "sample_scenes": [
+    {
+      "scene_idx": 1,
+      "target_bps": 5000,
+      "ground_truth_bps": 4999,
+      "analyzer_a_exg_bps": 4874,
+      "analyzer_b_cielab_bps": 4553,
+      "divergence_bps": 321
+    },
+    {
+      "scene_idx": 2,
+      "target_bps": 5214,
+      "ground_truth_bps": 5213,
+      "analyzer_a_exg_bps": 5080,
+      "analyzer_b_cielab_bps": 4905,
+      "divergence_bps": 175
+    },
+    {
+      "scene_idx": 3,
+      "target_bps": 5428,
+      "ground_truth_bps": 5424,
+      "analyzer_a_exg_bps": 5252,
+      "analyzer_b_cielab_bps": 5195,
+      "divergence_bps": 57
+    },
+    {
+      "scene_idx": 4,
+      "target_bps": 5642,
+      "ground_truth_bps": 5641,
+      "analyzer_a_exg_bps": 5464,
+      "analyzer_b_cielab_bps": 5503,
+      "divergence_bps": 39
+    },
+    {
+      "scene_idx": 5,
+      "target_bps": 5857,
+      "ground_truth_bps": 5858,
+      "analyzer_a_exg_bps": 5633,
+      "analyzer_b_cielab_bps": 5774,
+      "divergence_bps": 141
+    },
+    {
+      "scene_idx": 6,
+      "target_bps": 6071,
+      "ground_truth_bps": 6071,
+      "analyzer_a_exg_bps": 5782,
+      "analyzer_b_cielab_bps": 5635,
+      "divergence_bps": 147
+    },
+    {
+      "scene_idx": 7,
+      "target_bps": 6285,
+      "ground_truth_bps": 6287,
+      "analyzer_a_exg_bps": 5984,
+      "analyzer_b_cielab_bps": 5976,
+      "divergence_bps": 8
+    },
+    {
+      "scene_idx": 8,
+      "target_bps": 6500,
+      "ground_truth_bps": 6503,
+      "analyzer_a_exg_bps": 6175,
+      "analyzer_b_cielab_bps": 6283,
+      "divergence_bps": 108
+    },
+    {
+      "scene_idx": 9,
+      "target_bps": 6714,
+      "ground_truth_bps": 6711,
+      "analyzer_a_exg_bps": 6299,
+      "analyzer_b_cielab_bps": 6555,
+      "divergence_bps": 256
+    },
+    {
+      "scene_idx": 10,
+      "target_bps": 6928,
+      "ground_truth_bps": 6926,
+      "analyzer_a_exg_bps": 6538,
+      "analyzer_b_cielab_bps": 6853,
+      "divergence_bps": 315
+    }
+  ]
+}
