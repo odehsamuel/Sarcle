@@ -275,6 +275,25 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertTrue(any("DIS_PAD_JTAG" in cmd for cmd in plan_s3["efuse_commands"]))
         self.assertTrue(any("HARD_DIS_JTAG" in cmd for cmd in plan_s3["efuse_commands"]))
 
+    def test_factory_provision_device_pipeline(self):
+        prov_dir = os.path.join(os.path.dirname(__file__), "..", "tools", "provisioning")
+        sys.path.insert(0, prov_dir)
+        from provision_device import generate_device_keypair, generate_nvs_csv, provision_and_register_device
+
+        seed, pub = generate_device_keypair()
+        self.assertEqual(len(seed), 32)
+        self.assertEqual(len(pub), 32)
+
+        csv_str = generate_nvs_csv(seed, pub, 10)
+        self.assertIn("pow_sec", csv_str)
+        self.assertIn("cnt_a,data,u64,10", csv_str)
+        self.assertIn(seed.hex(), csv_str)
+
+        # Mock registration
+        res = provision_and_register_device(chain_mode="mock", dry_run=False)
+        self.assertTrue(res["registered_on_chain"])
+        self.assertEqual(len(res["device_id_hex"]), 64)
+
 
 if __name__ == "__main__":
     unittest.main()

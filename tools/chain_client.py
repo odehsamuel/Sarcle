@@ -26,6 +26,14 @@ class ChainClient:
         self.registry_mock.init(self.admin)
         self.escrow_mock.init(self.admin)
 
+    def register_device(self, admin: str, device_id: bytes):
+        if isinstance(device_id, str):
+            device_id = bytes.fromhex(device_id)
+        if self.mode == "mock":
+            return self.registry_mock.register_device(admin, device_id)
+        else:
+            raise NotImplementedError("Live RPC invocation configured via CLI")
+
     def request_challenge(
         self, attester_addr: str, job_ref: int, device_id: bytes, kind: int
     ) -> bytes:
