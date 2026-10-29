@@ -417,6 +417,16 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("CN3791 MPPT", doc_content)
         self.assertIn("LiFePO4", doc_content)
 
+    def test_solar_mppt_design_spec(self):
+        doc_path = os.path.join(os.path.dirname(__file__), "..", "docs", "SOLAR_MPPT_DESIGN.md")
+        self.assertTrue(os.path.exists(doc_path))
+        with open(doc_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("CN3791", content)
+        self.assertIn("MPPT", content)
+        self.assertIn("120", content)
+        self.assertIn("LiFePO4", content)
+
 
 if __name__ == "__main__":
     unittest.main()
