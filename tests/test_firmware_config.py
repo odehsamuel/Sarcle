@@ -347,6 +347,20 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("iot.1nce.net", content)
         self.assertIn("AT+SHREQ", content)
 
+    def test_network_manager_failover_engine(self):
+        header_path = os.path.join(
+            os.path.dirname(__file__), "..", "firmware", "esp32cam", "include", "network_manager.h"
+        )
+        self.assertTrue(os.path.exists(header_path))
+        with open(header_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("class NetworkManager", content)
+        self.assertIn("ROUTE_CELLULAR", content)
+        self.assertIn("ROUTE_WIFI", content)
+        self.assertIn("connect_cellular", content)
+        self.assertIn("connect_wifi", content)
+
 
 if __name__ == "__main__":
     unittest.main()
