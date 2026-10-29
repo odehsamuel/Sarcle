@@ -437,6 +437,16 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("Borosilicate", content)
         self.assertIn("Hydrophobic", content)
 
+    def test_thermal_condensation_spec(self):
+        spec_path = os.path.join(os.path.dirname(__file__), "..", "docs", "THERMAL_CONDENSATION_SPEC.md")
+        self.assertTrue(os.path.exists(spec_path))
+        with open(spec_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("ePTFE", content)
+        self.assertIn("Gore", content)
+        self.assertIn("Desiccant", content)
+        self.assertIn("Laplacian", content)
+
 
 if __name__ == "__main__":
     unittest.main()
