@@ -361,6 +361,18 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("connect_cellular", content)
         self.assertIn("connect_wifi", content)
 
+    def test_power_duty_cycle_budget(self):
+        header_path = os.path.join(
+            os.path.dirname(__file__), "..", "firmware", "esp32cam", "include", "power_duty_cycle.h"
+        )
+        self.assertTrue(os.path.exists(header_path))
+        with open(header_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("class PowerDutyCycleManager", content)
+        self.assertIn("calculate_power_model", content)
+        self.assertIn("enter_deep_sleep", content)
+
 
 if __name__ == "__main__":
     unittest.main()
