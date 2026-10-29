@@ -458,6 +458,16 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("OV2640", content)
         self.assertIn("$33.94", content)
 
+    def test_assembly_and_deployment_guide(self):
+        guide_path = os.path.join(os.path.dirname(__file__), "..", "docs", "ASSEMBLY_GUIDE.md")
+        self.assertTrue(os.path.exists(guide_path))
+        with open(guide_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("Bed-of-Nails", content)
+        self.assertIn("provision_device.py", content)
+        self.assertIn("disable_jtag_efuse.py", content)
+        self.assertIn("Depression Angle", content)
+
 
 if __name__ == "__main__":
     unittest.main()
