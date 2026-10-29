@@ -373,6 +373,19 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("calculate_power_model", content)
         self.assertIn("enter_deep_sleep", content)
 
+    def test_power_rail_isolation(self):
+        header_path = os.path.join(
+            os.path.dirname(__file__), "..", "firmware", "esp32cam", "include", "power_rails.h"
+        )
+        self.assertTrue(os.path.exists(header_path))
+        with open(header_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("class PowerRailManager", content)
+        self.assertIn("power_camera", content)
+        self.assertIn("power_modem", content)
+        self.assertIn("isolate_all_for_sleep", content)
+
 
 if __name__ == "__main__":
     unittest.main()
