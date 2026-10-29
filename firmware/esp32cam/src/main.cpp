@@ -27,23 +27,7 @@
 #include "wifi_credentials.h.example"
 #endif
 
-// AI-Thinker Camera Pin Configuration
-#define PWDN_GPIO_NUM     32
-#define RESET_GPIO_NUM    -1
-#define XCLK_GPIO_NUM      0
-#define SIOD_GPIO_NUM     26
-#define SIOC_GPIO_NUM     27
-#define Y9_GPIO_NUM       35
-#define Y8_GPIO_NUM       34
-#define Y7_GPIO_NUM       39
-#define Y6_GPIO_NUM       36
-#define Y5_GPIO_NUM       21
-#define Y4_GPIO_NUM       19
-#define Y3_GPIO_NUM       18
-#define Y2_GPIO_NUM        5
-#define VSYNC_GPIO_NUM    25
-#define HREF_GPIO_NUM     23
-#define PCLK_GPIO_NUM     22
+#include "board_pins.h"
 
 #define DOMAIN_TAG "PoW-OBS-v2" // 10 bytes ASCII
 #define CANONICAL_MSG_LEN 115
@@ -213,9 +197,12 @@ void setup() {
     Serial.begin(115200);
     delay(1000);
     Serial.println("\n==============================================");
-    Serial.println("  Proof-of-Weeding ESP32-CAM Client v0.1.0");
-    Serial.println("  Hardware status: UNVERIFIED ON PHYSICAL BOARD");
+    Serial.printf("  Proof-of-Weeding Edge Client v0.2.0 (%s)\n", BOARD_NAME);
+    Serial.println("  Hardware status: Bench Testing Target Matrix");
     Serial.println("==============================================");
+
+    pinMode(STATUS_LED_PIN, OUTPUT);
+    digitalWrite(STATUS_LED_PIN, !LED_ACTIVE_LEVEL);
 
     init_keys_and_counter();
     init_camera();
