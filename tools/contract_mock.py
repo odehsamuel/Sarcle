@@ -307,3 +307,273 @@ class EvidenceRegistryMock:
         if not obs:
             raise RegistryError("OBSERVATION_NOT_FOUND")
         return obs
+
+
+class EscrowError(Exception):
+    pass
+
+
+class WorkEscrowMock:
+    def __init__(self, registry: EvidenceRegistryMock):
+        self.registry = registry
+        self.admin: Optional[str] = None
+        self.next_job_id: int = 1
+        self.jobs: Dict[int, Dict] = {}
+        self.events: List[Tuple[str, Tuple]] = []
+
+    def init(self, admin: str):
+        self.admin = admin
+
+    def create_job(self, params: Dict) -> int:
+        if params["amount"] <= 0:
+            raise EscrowError("INVALID_AMOUNT")
+        if (
+            params["threshold_bps"] > 10000
+            or params["retainage_bps"] > 10000
+            or params["min_baseline_bps"] > 10000
+        ):
+            raise EscrowError("INVALID_BASIS_POINTS")
+
+        now = self.registry.current_timestamp
+        if not (
+            now
+            < params["baseline_deadline"]
+            < params["completion_deadline"]
+            < params["followup_deadline"]
+        ):
+            raise EscrowError("INVALID_DEADLINES")
+
+        job_id = self.next_job_id
+        self.next_job_id += 1
+
+        self.jobs[job_id] = {
+            "job_id": job_id,
+            "farmer": params["farmer"],
+            "worker": params["worker"],
+            "token": params["token"],
+            "amount": params["amount"],
+            "device_id": params["device_id"],
+            "roi_hash": params["roi_hash"],
+            "metric_id": params["metric_id"],
+            "arbiter": params["arbiter"],
+            "threshold_bps": params["threshold_bps"],
+            "min_baseline_bps": params["min_baseline_bps"],
+            "retainage_bps": params["retainage_bps"],
+            "followup_delay_secs": params["followup_delay_secs"],
+            "max_regrowth_bps": params["max_regrowth_bps"],
+            "baseline_deadline": params["baseline_deadline"],
+            "completion_deadline": params["completion_deadline"],
+            "followup_deadline": params["followup_deadline"],
+            "challenge_window_secs": params["challenge_window_secs"],
+            "state": "Funded",
+            "baseline_obs_id": None,
+            "completion_obs_id": None,
+            "followup_obs_id": None,
+            "baseline_cover_bps": None,
+            "completion_cover_bps": None,
+            "followup_cover_bps": None,
+            "baseline_image_hash": None,
+            "completion_image_hash": None,
+            "completion_recorded_at": None,
+            "retained_amount": 0,
+            "paid_to_worker": 0,
+            "refunded_to_farmer": 0,
+            "dispute_timestamp": None,
+            "dispute_outcome": None,
+        }
+        self.events.append(
+            ("JobCreated", (job_id, params["farmer"], params["worker"], params["amount"]))
+        )
+        return job_id
+
+    def attach_observation(self, caller: str, job_id: int, obs_id: int):
+        job = self.jobs.get(job_id)
+        if not job:
+            raise EscrowError("JOB_NOT_FOUND")
+
+        obs = self.registry.get_observation(obs_id)
+
+        if obs["status"] == "Divergent":
+            job["state"] = "Disputed"
+            job["dispute_timestamp"] = self.registry.current_timestamp
+            self.events.append(("JobDisputed", (job_id, caller)))
+            return
+
+        if obs["status"] != "Accepted":
+            raise EscrowError("OBSERVATION_NOT_ACCEPTED")
+        if obs["job_ref"] != job_id:
+            raise EscrowError("OBSERVATION_JOB_MISMATCH")
+        if obs["device_id"] != job["device_id"]:
+            raise EscrowError("OBSERVATION_DEVICE_MISMATCH")
+        if obs["roi_hash"] != job["roi_hash"]:
+            raise EscrowError("OBSERVATION_ROI_MISMATCH")
+        if obs["metric_id"] != job["metric_id"]:
+            raise EscrowError("OBSERVATION_METRIC_MISMATCH")
+
+        now = self.registry.current_timestamp
+        cover_bps = obs["accepted_value_bps"]
+
+        if obs["kind"] == 0:  # Baseline
+            if job["state"] != "Funded":
+                raise EscrowError("INVALID_JOB_STATE")
+            if now > job["baseline_deadline"]:
+                raise EscrowError("DEADLINE_EXCEEDED")
+            if cover_bps < job["min_baseline_bps"]:
+                raise EscrowError("BASELINE_TOO_LOW")
+
+            job["state"] = "BaselineRecorded"
+            job["baseline_obs_id"] = obs_id
+            job["baseline_cover_bps"] = cover_bps
+            job["baseline_image_hash"] = obs["image_hash"]
+
+        elif obs["kind"] == 1:  # Completion
+            if job["state"] != "BaselineRecorded":
+                raise EscrowError("INVALID_JOB_STATE")
+            if now > job["completion_deadline"]:
+                raise EscrowError("DEADLINE_EXCEEDED")
+            if obs["image_hash"] == job["baseline_image_hash"]:
+                raise EscrowError("DUPLICATE_IMAGE")
+
+            job["state"] = "CompletionRecorded"
+            job["completion_obs_id"] = obs_id
+            job["completion_cover_bps"] = cover_bps
+            job["completion_image_hash"] = obs["image_hash"]
+            job["completion_recorded_at"] = now
+
+        elif obs["kind"] == 2:  # Followup
+            if job["state"] != "CompletionPaid":
+                raise EscrowError("INVALID_JOB_STATE")
+            if now > job["followup_deadline"]:
+                raise EscrowError("DEADLINE_EXCEEDED")
+            comp_time = job["completion_recorded_at"] or 0
+            if now < comp_time + job["followup_delay_secs"]:
+                raise EscrowError("FOLLOWUP_DELAY_NOT_MET")
+            if (
+                obs["image_hash"] == job["completion_image_hash"]
+                or obs["image_hash"] == job["baseline_image_hash"]
+            ):
+                raise EscrowError("DUPLICATE_IMAGE")
+
+            job["state"] = "FollowupRecorded"
+            job["followup_obs_id"] = obs_id
+            job["followup_cover_bps"] = cover_bps
+        else:
+            raise EscrowError("OBSERVATION_KIND_MISMATCH")
+
+        self.events.append(
+            ("ObservationAttached", (job_id, obs_id, obs["kind"], cover_bps))
+        )
+
+    def finalize_completion(self, job_id: int):
+        job = self.jobs.get(job_id)
+        if not job or job["state"] != "CompletionRecorded":
+            raise EscrowError("INVALID_JOB_STATE")
+
+        now = self.registry.current_timestamp
+        recorded_at = job["completion_recorded_at"]
+        if now < recorded_at + job["challenge_window_secs"]:
+            raise EscrowError("CHALLENGE_WINDOW_ACTIVE")
+
+        base_cover = job["baseline_cover_bps"]
+        comp_cover = job["completion_cover_bps"]
+        thresh = job["threshold_bps"]
+
+        # comp_cover * 10000 <= base_cover * (10000 - thresh)
+        target_max = base_cover * (10000 - thresh)
+        actual_scaled = comp_cover * 10000
+
+        if actual_scaled <= target_max:
+            retainage = (job["amount"] * job["retainage_bps"]) // 10000
+            payout = job["amount"] - retainage
+            job["retained_amount"] = retainage
+            job["paid_to_worker"] = payout
+
+            if retainage > 0:
+                job["state"] = "CompletionPaid"
+            else:
+                job["state"] = "Settled"
+            self.events.append(
+                ("CompletionFinalized", (job_id, payout, 0))
+            )
+        else:
+            job["refunded_to_farmer"] = job["amount"]
+            job["state"] = "Refunded"
+            self.events.append(
+                ("CompletionFinalized", (job_id, 0, job["amount"]))
+            )
+
+    def finalize_followup(self, job_id: int):
+        job = self.jobs.get(job_id)
+        if not job or job["state"] != "FollowupRecorded":
+            raise EscrowError("INVALID_JOB_STATE")
+
+        comp_cover = job["completion_cover_bps"]
+        fol_cover = job["followup_cover_bps"]
+        retainage = job["retained_amount"]
+
+        if fol_cover <= comp_cover + job["max_regrowth_bps"]:
+            job["paid_to_worker"] += retainage
+            job["state"] = "Settled"
+            self.events.append(
+                ("FollowupFinalized", (job_id, retainage, 0))
+            )
+        else:
+            job["refunded_to_farmer"] += retainage
+            job["state"] = "Settled"
+            self.events.append(
+                ("FollowupFinalized", (job_id, 0, retainage))
+            )
+
+    def dispute(self, caller: str, job_id: int):
+        job = self.jobs.get(job_id)
+        if not job:
+            raise EscrowError("JOB_NOT_FOUND")
+        if caller != job["farmer"] and caller != job["worker"]:
+            raise EscrowError("UNAUTHORIZED")
+        if job["state"] in ("Disputed", "Resolved", "Settled", "Refunded"):
+            raise EscrowError("INVALID_JOB_STATE")
+
+        job["state"] = "Disputed"
+        job["dispute_timestamp"] = self.registry.current_timestamp
+        self.events.append(("JobDisputed", (job_id, caller)))
+
+    def resolve(self, arbiter: str, job_id: int, outcome: str):
+        job = self.jobs.get(job_id)
+        if not job or job["state"] != "Disputed":
+            raise EscrowError("NO_DISPUTE_ACTIVE")
+        if arbiter != job["arbiter"]:
+            raise EscrowError("UNAUTHORIZED")
+
+        remaining = job["amount"] - job["paid_to_worker"] - job["refunded_to_farmer"]
+        if outcome == "FarmerWins":
+            job["refunded_to_farmer"] += remaining
+        elif outcome == "WorkerWins":
+            job["paid_to_worker"] += remaining
+        elif outcome == "Split":
+            half_worker = remaining // 2
+            half_farmer = remaining - half_worker
+            job["paid_to_worker"] += half_worker
+            job["refunded_to_farmer"] += half_farmer
+        else:
+            raise EscrowError("INVALID_OUTCOME")
+
+        job["state"] = "Resolved"
+        job["dispute_outcome"] = outcome
+        self.events.append(("DisputeResolved", (job_id, outcome)))
+
+    def cancel(self, farmer: str, job_id: int):
+        job = self.jobs.get(job_id)
+        if not job or job["state"] != "Funded":
+            raise EscrowError("INVALID_JOB_STATE")
+        if farmer != job["farmer"]:
+            raise EscrowError("UNAUTHORIZED")
+
+        job["refunded_to_farmer"] = job["amount"]
+        job["state"] = "Refunded"
+        self.events.append(("JobCancelled", (job_id,)))
+
+    def get_job(self, job_id: int) -> Dict:
+        job = self.jobs.get(job_id)
+        if not job:
+            raise EscrowError("JOB_NOT_FOUND")
+        return job

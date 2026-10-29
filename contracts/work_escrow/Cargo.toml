@@ -1,0 +1,17 @@
+[package]
+name = "work_escrow"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Evidence-gated work escrow contract for Proof-of-Weeding on Soroban"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = "22.0.8"
+evidence_registry = { path = "../evidence_registry" }
+
+[dev-dependencies]
+soroban-sdk = { version = "22.0.8", features = ["testutils"] }
