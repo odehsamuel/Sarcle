@@ -320,6 +320,19 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("MODEM_NET_REGISTERED_HOME", content)
         self.assertIn("http_post", content)
 
+    def test_quectel_bg95_driver_header(self):
+        header_path = os.path.join(
+            os.path.dirname(__file__), "..", "firmware", "esp32cam", "include", "modem_bg95.h"
+        )
+        self.assertTrue(os.path.exists(header_path))
+        with open(header_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("class QuectelBG95Modem : public ICellularModem", content)
+        self.assertIn("AT+QICSGP", content)
+        self.assertIn("AT+QIACT", content)
+        self.assertIn("AT+QHTTPPOST", content)
+
 
 if __name__ == "__main__":
     unittest.main()
