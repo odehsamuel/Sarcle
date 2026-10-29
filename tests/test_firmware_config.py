@@ -307,6 +307,19 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("commit_new_security_version", content)
         self.assertIn("verify_app_security_version", content)
 
+    def test_cellular_hal_interface_and_mock(self):
+        header_path = os.path.join(
+            os.path.dirname(__file__), "..", "firmware", "esp32cam", "include", "cellular_hal.h"
+        )
+        self.assertTrue(os.path.exists(header_path))
+        with open(header_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("class ICellularModem", content)
+        self.assertIn("class MockCellularModem", content)
+        self.assertIn("MODEM_NET_REGISTERED_HOME", content)
+        self.assertIn("http_post", content)
+
 
 if __name__ == "__main__":
     unittest.main()
