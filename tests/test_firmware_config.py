@@ -399,6 +399,24 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("BATTERY_LOW_WARNING", content)
         self.assertIn("evaluate_safety", content)
 
+    def test_hardware_schematic_and_architecture_doc(self):
+        sch_path = os.path.join(
+            os.path.dirname(__file__), "..", "hardware", "kicad", "proof_of_weeding_edge_node.kicad_sch"
+        )
+        self.assertTrue(os.path.exists(sch_path))
+        with open(sch_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("ESP32-S3-WROOM-1", content)
+        self.assertIn("CN3791", content)
+        self.assertIn("Quectel_BG95", content)
+
+        doc_path = os.path.join(os.path.dirname(__file__), "..", "docs", "HARDWARE_DESIGN.md")
+        self.assertTrue(os.path.exists(doc_path))
+        with open(doc_path, "r", encoding="utf-8") as f:
+            doc_content = f.read()
+        self.assertIn("CN3791 MPPT", doc_content)
+        self.assertIn("LiFePO4", doc_content)
+
 
 if __name__ == "__main__":
     unittest.main()
