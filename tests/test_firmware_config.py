@@ -447,6 +447,17 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("Desiccant", content)
         self.assertIn("Laplacian", content)
 
+    def test_bill_of_materials_under_40_dollars(self):
+        bom_path = os.path.join(os.path.dirname(__file__), "..", "docs", "BOM.md")
+        self.assertTrue(os.path.exists(bom_path))
+        with open(bom_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("ESP32-S3-WROOM-1", content)
+        self.assertIn("CN3791", content)
+        self.assertIn("BG95-M3", content)
+        self.assertIn("OV2640", content)
+        self.assertIn("$33.94", content)
+
 
 if __name__ == "__main__":
     unittest.main()
