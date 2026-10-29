@@ -243,6 +243,26 @@ class TestFirmwareConfiguration(unittest.TestCase):
                 if os.path.exists(p):
                     os.remove(p)
 
+    def test_secure_nvs_architecture(self):
+        nvs_h = os.path.join(self.firmware_dir, "include", "secure_nvs.h")
+        self.assertTrue(os.path.exists(nvs_h))
+
+        with open(nvs_h, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("KEY_SLOT_A", content)
+        self.assertIn("KEY_SLOT_B", content)
+        self.assertIn("increment_counter", content)
+        self.assertIn("load_device_keys", content)
+        self.assertIn("store_device_keys", content)
+
+        with open(self.main_path, "r", encoding="utf-8") as f:
+            main_content = f.read()
+
+        self.assertIn('#include "secure_nvs.h"', main_content)
+        self.assertIn("secure_nvs.init()", main_content)
+        self.assertIn("secure_nvs.increment_counter()", main_content)
+
 
 if __name__ == "__main__":
     unittest.main()

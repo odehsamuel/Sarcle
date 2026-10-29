@@ -31,12 +31,14 @@
 #include "camera_hal.h"
 #include "psram_allocator.h"
 #include "diagnostic_cli.h"
+#include "secure_nvs.h"
 
 #define DOMAIN_TAG "PoW-OBS-v2" // 10 bytes ASCII
 #define CANONICAL_MSG_LEN 115
 
 CameraHAL camera_hal;
 DiagnosticCLI diag_cli;
+SecureNVS secure_nvs;
 Preferences prefs;
 uint8_t device_pk[32];
 uint8_t device_sk[32];
@@ -52,14 +54,14 @@ void print_hex(const char* label, const uint8_t* data, size_t len) {
 }
 
 void init_keys_and_counter() {
-    prefs.begin("pow_device", false);
-    monotonic_counter = prefs.getULong64("counter", 0);
+    if (!secure_nvs.init()) {
+        Serial.println("[BOOT-FATAL] Secure NVS initialization failed!");
+    }
 
-    size_t pk_len = prefs.getBytes("pubkey", device_pk, 32);
-    size_t sk_len = prefs.getBytes("privkey", device_sk, 32);
+    monotonic_counter = secure_nvs.get_counter();
 
-    if (pk_len != 32 || sk_len != 32) {
-        Serial.println("[BOOT] No Ed25519 keypair found in NVS. Generating new keypair...");
+    if (!secure_nvs.load_device_keys(device_sk, device_pk)) {
+        Serial.println("[BOOT] No Ed25519 keypair found in secure NVS. Generating new keypair...");
         
         mbedtls_entropy_context entropy;
         mbedtls_ctr_drbg_context ctr_drbg;
@@ -74,8 +76,7 @@ void init_keys_and_counter() {
         // Derive public key: for demonstration, mock fallback seed or RFC 8032 curve derivation
         mbedtls_sha256(device_sk, 32, device_pk, 0);
 
-        prefs.putBytes("privkey", device_sk, 32);
-        prefs.putBytes("pubkey", device_pk, 32);
+        secure_nvs.store_device_keys(device_sk, device_pk);
 
         mbedtls_ctr_drbg_free(&ctr_drbg);
         mbedtls_entropy_free(&entropy);
@@ -231,8 +232,7 @@ void loop() {
     mbedtls_sha256(cap.buffer, cap.length, image_sha256, 0);
     print_hex("[CRYPTO] Image SHA-256: ", image_sha256, 32);
 
-    monotonic_counter++;
-    prefs.putULong64("counter", monotonic_counter);
+    monotonic_counter = secure_nvs.increment_counter();
 
     uint64_t now = (uint64_t)time(nullptr);
     uint8_t* raw_msg = (uint8_t*)PsramAllocator::allocate(CANONICAL_MSG_LEN);
