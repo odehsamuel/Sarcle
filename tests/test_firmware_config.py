@@ -263,6 +263,18 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("secure_nvs.init()", main_content)
         self.assertIn("secure_nvs.increment_counter()", main_content)
 
+    def test_disable_jtag_efuse_provisioning(self):
+        prov_dir = os.path.join(os.path.dirname(__file__), "..", "tools", "provisioning")
+        sys.path.insert(0, prov_dir)
+        from disable_jtag_efuse import generate_jtag_disable_plan
+
+        plan_esp32 = generate_jtag_disable_plan("esp32")
+        self.assertTrue(any("JTAG_DISABLE" in cmd for cmd in plan_esp32["efuse_commands"]))
+
+        plan_s3 = generate_jtag_disable_plan("esp32s3")
+        self.assertTrue(any("DIS_PAD_JTAG" in cmd for cmd in plan_s3["efuse_commands"]))
+        self.assertTrue(any("HARD_DIS_JTAG" in cmd for cmd in plan_s3["efuse_commands"]))
+
 
 if __name__ == "__main__":
     unittest.main()
