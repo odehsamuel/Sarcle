@@ -90,6 +90,17 @@ python tools/pow-verify/verify.py --job-id 1 \
 python -m unittest discover tests
 ```
 
+### 5.1 Interactive Dashboard (Web App)
+
+- **Live Web App (GitHub Pages):** [https://odehsamuel.github.io/Sarcle/](https://odehsamuel.github.io/Sarcle/) (or [https://odehsamuel.github.io/proof-of-weeding/](https://odehsamuel.github.io/proof-of-weeding/))
+- **Local Development Server:**
+  ```bash
+  cd dashboard
+  npm install
+  npm run dev
+  # Open http://localhost:3000
+  ```
+
 ---
 
 ## 6. Monorepo Structure
