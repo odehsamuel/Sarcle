@@ -204,6 +204,45 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("AES-XTS", content)
         self.assertIn("FLASH_CRYPT_CNT", content)
 
+    def test_secure_boot_signing_and_verification(self):
+        prov_dir = os.path.join(os.path.dirname(__file__), "..", "tools", "provisioning")
+        sys.path.insert(0, prov_dir)
+        from secure_boot_sign import generate_secure_boot_key, sign_firmware_image, verify_signed_image, generate_efuse_burn_plan
+
+        test_key = os.path.join(self.firmware_dir, "test_sb_key.bin")
+        test_bin = os.path.join(self.firmware_dir, "test_fw.bin")
+        signed_bin = os.path.join(self.firmware_dir, "test_fw_signed.bin")
+
+        try:
+            generate_secure_boot_key(test_key)
+            with open(test_bin, "wb") as f:
+                f.write(os.urandom(8192))
+
+            # Sign image
+            digest, sig = sign_firmware_image(test_bin, test_key, signed_bin)
+            self.assertEqual(len(digest), 32)
+            self.assertEqual(len(sig), 64)
+
+            # Verify valid signature
+            self.assertTrue(verify_signed_image(signed_bin, test_key))
+
+            # Tampered image test
+            with open(signed_bin, "r+b") as f:
+                f.seek(100)
+                byte = f.read(1)
+                f.seek(100)
+                f.write(bytes([byte[0] ^ 0xFF]))
+
+            self.assertFalse(verify_signed_image(signed_bin, test_key))
+
+            # Test efuse plan
+            plan = generate_efuse_burn_plan(test_key)
+            self.assertIn("SECURE_BOOT_DIGEST", plan["burn_efuse_key_cmd"])
+        finally:
+            for p in [test_key, test_bin, signed_bin]:
+                if os.path.exists(p):
+                    os.remove(p)
+
 
 if __name__ == "__main__":
     unittest.main()
