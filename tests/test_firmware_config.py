@@ -84,6 +84,24 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("camera_hal.capture", main_content)
         self.assertIn("camera_hal.init", main_content)
 
+    def test_psram_allocator_integration(self):
+        alloc_path = os.path.join(self.firmware_dir, "include", "psram_allocator.h")
+        self.assertTrue(os.path.exists(alloc_path))
+        with open(alloc_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("MALLOC_CAP_SPIRAM", content)
+        self.assertIn("allocate", content)
+        self.assertIn("deallocate", content)
+        self.assertIn("print_memory_stats", content)
+
+        with open(self.main_path, "r", encoding="utf-8") as f:
+            main_content = f.read()
+
+        self.assertIn('#include "psram_allocator.h"', main_content)
+        self.assertIn("PsramAllocator::allocate", main_content)
+        self.assertIn("PsramAllocator::deallocate", main_content)
+
 
 if __name__ == "__main__":
     unittest.main()

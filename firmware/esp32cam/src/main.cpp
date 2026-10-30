@@ -29,6 +29,7 @@
 
 #include "board_pins.h"
 #include "camera_hal.h"
+#include "psram_allocator.h"
 
 #define DOMAIN_TAG "PoW-OBS-v2" // 10 bytes ASCII
 #define CANONICAL_MSG_LEN 115
@@ -182,6 +183,8 @@ void setup() {
         Serial.printf("[BOOT] Camera HAL ready: %s\n", camera_hal.get_sensor_name());
     }
 
+    PsramAllocator::print_memory_stats();
+
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     Serial.printf("[WIFI] Connecting to %s", WIFI_SSID);
     while (WiFi.status() != WL_CONNECTED) {
@@ -219,15 +222,24 @@ void loop() {
     prefs.putULong64("counter", monotonic_counter);
 
     uint64_t now = (uint64_t)time(nullptr);
-    uint8_t raw_msg[115];
-    uint8_t signature[64];
-    build_and_sign_observation(
-        DEFAULT_JOB_REF, DEFAULT_KIND, monotonic_counter, now,
-        challenge, image_sha256, raw_msg, signature
-    );
+    uint8_t* raw_msg = (uint8_t*)PsramAllocator::allocate(CANONICAL_MSG_LEN);
+    uint8_t* signature = (uint8_t*)PsramAllocator::allocate(64);
 
-    Serial.println("[NET] Posting evidence payload to Attester A...");
-    // Multipart POST implementation
+    if (raw_msg && signature) {
+        build_and_sign_observation(
+            DEFAULT_JOB_REF, DEFAULT_KIND, monotonic_counter, now,
+            challenge, image_sha256, raw_msg, signature
+        );
+
+        Serial.println("[NET] Posting evidence payload to Attester A...");
+        // Multipart POST implementation
+
+        PsramAllocator::deallocate(raw_msg);
+        PsramAllocator::deallocate(signature);
+    } else {
+        Serial.println("[ERR] PSRAM buffer allocation failed for observation frame!");
+    }
+
     camera_hal.release(cap.fb);
 
     Serial.println("[SUCCESS] Capture sequence complete. Sleeping...");
