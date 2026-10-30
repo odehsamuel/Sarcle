@@ -81,3 +81,4 @@ def check_solar_glare_and_reflections(
         )
 
     return report
+

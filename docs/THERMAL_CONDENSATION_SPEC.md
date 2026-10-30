@@ -55,3 +55,4 @@ Sealed outdoor electronic enclosures in agricultural settings suffer severe diur
 
 In addition to physical prevention, Attester A (Python) and Attester B (Rust) execute an environmental quality gate prior to running the ExG vegetation pipeline:
 - **Laplacian Focus Variance Gate:** Measures edge sharpness across the frame ($\sigma^2_{\text{Laplacian}} > 100$). Condensation fogging produces severe high-frequency attenuation ($\sigma^2 < 45$), triggering immediate `ERR_CONDENSATION_FOG` rejection without recording faulty on-chain evidence.
+

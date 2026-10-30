@@ -105,3 +105,4 @@ public:
         return evaluate_safety().safe_to_operate;
     }
 };
+

@@ -117,3 +117,4 @@ class ChallengeWindowAdaptor:
             **profile,
         }
         return is_fresh, diag
+

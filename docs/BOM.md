@@ -49,3 +49,4 @@ At 1,000-unit batch production:
 - Tariffs, import duties, and VAT are excluded as they vary by receiving jurisdiction.
 - Prototype 1-off builds using breakout boards (ESP32-CAM + SIM7080G shield) typically total $45–$65 due to retail margin and lack of volume discounts.
 - Component lead times for Quectel cellular modules should be hedged with a 12-week forward order window.
+

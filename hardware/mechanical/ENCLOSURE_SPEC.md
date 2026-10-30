@@ -66,3 +66,4 @@ To preserve sub-millimeter vegetation change detection:
 - Fixed Field ROI Guarantee: The evidence protocol requires that the camera field of view does not shift between Baseline ($t_0$), Completion ($t_1$), and Follow-up ($t_2$).
 - Mechanical Swivel Lock: Integrated radial tooth splines ($5^\circ$ increments) with an M6 stainless carriage bolt clamp prevent wind-induced vibration or sagging.
 - Attachment Interface: Dual 316 stainless steel jubilee band clamps or M6 U-bolts securing to standard galvanized farm fence posts (40 mm to 60 mm OD).
+

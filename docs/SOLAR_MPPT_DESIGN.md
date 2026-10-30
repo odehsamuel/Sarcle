@@ -72,3 +72,4 @@ The CN3791 pin 7 (TEMP) monitors an external 10k NTC thermistor ($\beta = 3950$)
 | **Full Sun** | $1000\,\text{W/m}^2$ | 1.82 W | 2.76 W | **+51.6%** |
 | **Overcast Sky**| $250\,\text{W/m}^2$ | 0.28 W | 0.61 W | **+117.8%** |
 | **Heavy Shade** | $80\,\text{W/m}^2$ | 0.00 W (dropout) | 0.18 W | **Inf (operational)**|
+

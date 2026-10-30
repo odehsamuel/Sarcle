@@ -85,3 +85,4 @@ Clean-Room Compliance:           100% Procedural Synthesis (Zero Third-Party Dat
 ## 4. Honesty & Clean-Room Statement
 
 All synthetic scenes, noise matrices, and hardware test fixtures developed in Phase 2 were procedurally generated within this repository. No external datasets, no neural network weights, and no fabricated benchmarks were incorporated. Hardware capabilities unverified on physical silicon remain explicitly documented as such.
+

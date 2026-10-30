@@ -83,3 +83,4 @@ def estimate_scene_illumination_stats(img_bgr: np.ndarray) -> Dict[str, float]:
         "luminance_std": round(std_l, 2),
         "shadow_fraction": round(shadow_fraction, 4),
     }
+

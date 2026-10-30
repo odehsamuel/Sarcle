@@ -80,3 +80,4 @@ python tools/provisioning/disable_jtag_efuse.py --target esp32s3 --execute
 | **4** | **Lens Cleanliness** | Verify that no fingerprint oil, packaging debris, or plastic film remains on the front glass aperture. |
 | **5** | **Baseline Capture ($t_0$)** | Power on device. Verify via cellular indicator LED that challenge was fetched, frame signed, and baseline registered in `evidence_registry`. |
 | **6** | **ROI Definition** | In the farmer dashboard, trace the polygon ROI coordinates conforming to `docs/spec/roi-format.md` and lock job escrow. |
+

@@ -88,3 +88,4 @@ public:
     bool is_camera_powered() const { return cam_state; }
     bool is_modem_powered() const { return modem_state; }
 };
+

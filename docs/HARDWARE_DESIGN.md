@@ -69,3 +69,4 @@ The **Proof-of-Weeding (PoW)** edge capture node is an autonomous, solar-powered
 - Impedance controlled $50\,\Omega$ coplanar RF microstrip lines for cellular antenna.
 - Decoupling capacitor placement: $< 2\text{ mm}$ from MCU and camera sensor power pins.
 - 12 Test points exposed on bottom copper layer for automated Bed-of-Nails testing.
+

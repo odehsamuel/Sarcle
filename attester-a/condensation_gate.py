@@ -82,3 +82,4 @@ def check_condensation_and_droplets(
         )
 
     return report
+
