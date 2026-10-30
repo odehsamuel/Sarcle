@@ -102,6 +102,27 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("PsramAllocator::allocate", main_content)
         self.assertIn("PsramAllocator::deallocate", main_content)
 
+    def test_crypto_benchmark_suite(self):
+        bench_h = os.path.join(self.firmware_dir, "include", "crypto_benchmark.h")
+        bench_md = os.path.join(self.firmware_dir, "docs", "BENCHMARKS.md")
+
+        self.assertTrue(os.path.exists(bench_h))
+        self.assertTrue(os.path.exists(bench_md))
+
+        with open(bench_h, "r", encoding="utf-8") as f:
+            h_content = f.read()
+        self.assertIn("CryptoBenchmark", h_content)
+        self.assertIn("mbedtls_sha256", h_content)
+        self.assertIn("mbedtls_sha512", h_content)
+        self.assertIn("estimated_energy_uj", h_content)
+
+        with open(bench_md, "r", encoding="utf-8") as f:
+            md_content = f.read()
+        self.assertIn("AI-Thinker ESP32-CAM", md_content)
+        self.assertIn("ESP32-S3-CAM", md_content)
+        self.assertIn("Ed25519 Signature Generation", md_content)
+        self.assertIn("Battery Life Implications", md_content)
+
 
 if __name__ == "__main__":
     unittest.main()
