@@ -1,5 +1,6 @@
 """Unit tests for Field Optical Robustness & Environmental Quality Gates (Track E)."""
 
+import math
 import os
 import sys
 import unittest
@@ -77,6 +78,40 @@ class TestEnvironmentalRobustness(unittest.TestCase):
         with self.assertRaises(QualityGateFailure) as ctx:
             check_solar_glare_and_reflections(glare_frame, max_glare_fraction=0.05)
         self.assertEqual(ctx.exception.reason, "ERR_SOLAR_GLARE")
+
+    def test_lighting_invariant_homography_matcher(self):
+        homo_dir = os.path.join(os.path.dirname(__file__), "..", "tools", "homography")
+        sys.path.insert(0, homo_dir)
+        from frame_alignment import (
+            compute_frame_homography,
+            warp_roi_polygon,
+            FrameAlignmentError,
+        )
+
+        # Base textured image
+        h, w = 400, 400
+        np.random.seed(123)
+        base = np.random.randint(40, 220, (h, w, 3), dtype=np.uint8)
+        # Add high-contrast feature crosses
+        for x, y in [(80, 80), (320, 80), (80, 320), (320, 320), (200, 200), (150, 250), (250, 150)]:
+            cv2.circle(base, (x, y), 12, (255, 255, 255), -1)
+            cv2.circle(base, (x, y), 6, (0, 0, 0), -1)
+
+        # Create target with small 5px translation and altered lighting
+        M = np.float32([[1, 0, 5], [0, 1, 3]])
+        shifted = cv2.warpAffine(base, M, (w, h))
+        # Shift illumination (darker + different color cast)
+        shifted = (shifted * 0.7).astype(np.uint8)
+
+        H, rep = compute_frame_homography(base, shifted)
+        self.assertIsNotNone(H)
+        self.assertGreater(rep["inliers"], 5)
+        self.assertLess(abs(rep["translation_px"] - math.sqrt(5*5 + 3*3)), 2.5)
+
+        # Warp polygon test
+        roi = [(0.2, 0.2), (0.8, 0.2), (0.8, 0.8), (0.2, 0.8)]
+        warped_roi = warp_roi_polygon(roi, H)
+        self.assertEqual(len(warped_roi), 4)
 
 
 if __name__ == "__main__":
