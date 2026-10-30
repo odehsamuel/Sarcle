@@ -184,6 +184,26 @@ class TestFirmwareConfiguration(unittest.TestCase):
             ini_content = f.read()
         self.assertIn("board_build.partitions = partitions.csv", ini_content)
 
+    def test_flash_encryption_provisioning(self):
+        prov_dir = os.path.join(os.path.dirname(__file__), "..", "tools", "provisioning")
+        sys.path.insert(0, prov_dir)
+        from enable_flash_encryption import generate_provisioning_manifest, generate_flash_encryption_key
+
+        manifest_dev = generate_provisioning_manifest("dummy.bin", "development")
+        self.assertIn("burn_key", manifest_dev["burn_key_cmd"])
+        self.assertIn("FLASH_CRYPT_CNT 1", manifest_dev["enable_crypt_cmd"])
+
+        manifest_rel = generate_provisioning_manifest("dummy.bin", "release")
+        self.assertIn("DIS_DOWNLOAD_MODE", manifest_rel["disable_download_mode_cmd"])
+
+        # Check documentation
+        doc_path = os.path.join(os.path.dirname(__file__), "..", "docs", "HARDWARE_SECURITY.md")
+        self.assertTrue(os.path.exists(doc_path))
+        with open(doc_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("AES-XTS", content)
+        self.assertIn("FLASH_CRYPT_CNT", content)
+
 
 if __name__ == "__main__":
     unittest.main()
