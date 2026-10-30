@@ -1,0 +1,9 @@
+# ESP32 / ESP32-S3 Custom Partition Table with Encrypted NVS & Dual OTA
+# Name,     Type, SubType,  Offset,   Size,     Flags
+nvs,        data, nvs,      0x9000,   0x5000,
+otadata,    data, ota,      0xe000,   0x2000,
+nvs_key,    data, nvs_keys, 0x10000,  0x1000,   encrypted
+ota_0,      app,  ota_0,    0x20000,  0x1b0000,
+ota_1,      app,  ota_1,    0x1d0000, 0x1b0000,
+coredump,   data, coredump, 0x380000, 0x10000,
+spiffs,     data, spiffs,   0x390000, 0x60000,

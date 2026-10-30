@@ -162,6 +162,28 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("pio run -e ${{ matrix.target }}", content)
         self.assertIn("memory_stress_test.py", content)
 
+    def test_custom_encrypted_partition_table(self):
+        part_path = os.path.join(self.firmware_dir, "partitions.csv")
+        self.assertTrue(os.path.exists(part_path))
+
+        with open(part_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Must have encrypted NVS keys partition
+        self.assertIn("nvs_key", content)
+        self.assertIn("nvs_keys", content)
+        self.assertIn("encrypted", content)
+
+        # Must have dual OTA and coredump
+        self.assertIn("ota_0", content)
+        self.assertIn("ota_1", content)
+        self.assertIn("coredump", content)
+
+        # PlatformIO must reference it
+        with open(self.ini_path, "r", encoding="utf-8") as f:
+            ini_content = f.read()
+        self.assertIn("board_build.partitions = partitions.csv", ini_content)
+
 
 if __name__ == "__main__":
     unittest.main()
