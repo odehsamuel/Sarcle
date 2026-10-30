@@ -46,6 +46,23 @@ class TestEnvironmentalRobustness(unittest.TestCase):
         self.assertIn("shadow_fraction", stats)
         self.assertGreater(stats["shadow_fraction"], 0.2)
 
+    def test_condensation_and_droplet_gate(self):
+        from condensation_gate import check_condensation_and_droplets, QualityGateFailure
+
+        # Natural frame with moderate texture: should pass
+        natural_frame = self.test_img.copy()
+        noise = np.random.normal(0, 6, natural_frame.shape).astype(np.int16)
+        natural_frame = np.clip(natural_frame.astype(np.int16) + noise, 0, 255).astype(np.uint8)
+        rep = check_condensation_and_droplets(natural_frame, min_laplacian_var=10.0)
+        self.assertFalse(rep["fog_detected"])
+        self.assertFalse(rep["droplets_detected"])
+
+        # Heavy fogged image (Gaussian blurred, low contrast): should fail with ERR_CONDENSATION_FOG
+        fogged_frame = cv2.GaussianBlur(natural_frame, (51, 51), 15.0)
+        with self.assertRaises(QualityGateFailure) as ctx:
+            check_condensation_and_droplets(fogged_frame, min_laplacian_var=10.0)
+        self.assertEqual(ctx.exception.reason, "ERR_CONDENSATION_FOG")
+
 
 if __name__ == "__main__":
     unittest.main()
