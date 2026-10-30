@@ -150,6 +150,18 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertEqual(res["leaked_bytes"], 0)
         self.assertEqual(res["monotonic_counter"], 50)
 
+    def test_ci_firmware_matrix(self):
+        ci_path = os.path.join(os.path.dirname(__file__), "..", ".github", "workflows", "ci.yml")
+        self.assertTrue(os.path.exists(ci_path))
+
+        with open(ci_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("firmware-matrix:", content)
+        self.assertIn("target: [esp32cam, esp32s3]", content)
+        self.assertIn("pio run -e ${{ matrix.target }}", content)
+        self.assertIn("memory_stress_test.py", content)
+
 
 if __name__ == "__main__":
     unittest.main()
