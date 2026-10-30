@@ -2,6 +2,7 @@
 
 import os
 import re
+import sys
 import unittest
 
 
@@ -140,6 +141,14 @@ class TestFirmwareConfiguration(unittest.TestCase):
 
         self.assertIn('#include "diagnostic_cli.h"', main_content)
         self.assertIn("diag_cli.process_serial", main_content)
+
+    def test_500_cycles_stress_test(self):
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools", "hardware-sim"))
+        from memory_stress_test import run_stress_test
+
+        res = run_stress_test(cycles=50)  # fast unit test check
+        self.assertEqual(res["leaked_bytes"], 0)
+        self.assertEqual(res["monotonic_counter"], 50)
 
 
 if __name__ == "__main__":
