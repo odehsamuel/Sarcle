@@ -63,6 +63,21 @@ class TestEnvironmentalRobustness(unittest.TestCase):
             check_condensation_and_droplets(fogged_frame, min_laplacian_var=10.0)
         self.assertEqual(ctx.exception.reason, "ERR_CONDENSATION_FOG")
 
+    def test_solar_glare_and_flare_gate(self):
+        from glare_gate import check_solar_glare_and_reflections, QualityGateFailure
+
+        # Normal frame: should pass
+        rep = check_solar_glare_and_reflections(self.test_img)
+        self.assertFalse(rep["glare_exceeded"])
+        self.assertEqual(rep["glare_pixel_count"], 0)
+
+        # Frame with specular glare spot (> 5% of pixels saturated at 255)
+        glare_frame = self.test_img.copy()
+        glare_frame[50:150, 50:150] = (255, 255, 255)
+        with self.assertRaises(QualityGateFailure) as ctx:
+            check_solar_glare_and_reflections(glare_frame, max_glare_fraction=0.05)
+        self.assertEqual(ctx.exception.reason, "ERR_SOLAR_GLARE")
+
 
 if __name__ == "__main__":
     unittest.main()
