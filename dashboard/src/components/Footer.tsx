@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
         ⚠️ <strong>Testnet prototype. Not a production payment system.</strong>
       </p>
       <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem' }}>
-        Proof-of-Weeding protocol on Stellar/Soroban. Classical computer vision only. No mainnet release.
+        Sarcle protocol on Stellar/Soroban. Classical computer vision only. No mainnet release.
       </p>
     </footer>
   );

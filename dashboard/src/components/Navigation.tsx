@@ -30,9 +30,16 @@ export const Navigation: React.FC<NavigationProps> = ({
       borderBottom: '1px solid #e2e8f0',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-        <h2 style={{ margin: 0, color: '#15803d', fontSize: '1.25rem' }}>
-          🌱 Proof-of-Weeding
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <svg width="30" height="30" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="44" fill="#15803d" stroke="#166534" strokeWidth="6"/>
+            <path d="M32 66 C36 44, 56 34, 72 30 C66 52, 50 66, 32 66 Z" fill="#ffffff"/>
+            <circle cx="50" cy="50" r="9" fill="#86efac"/>
+          </svg>
+          <h2 style={{ margin: 0, color: '#15803d', fontSize: '1.4rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
+            Sarcle
+          </h2>
+        </div>
         <nav style={{ display: 'flex', gap: '1rem' }}>
           {tabs.map((tab) => (
             <button
