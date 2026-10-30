@@ -62,7 +62,12 @@ ESP32-CAM ──signed frame──▶ Attester A (Python/OpenCV) ──┐   dev
 | **Attester B** | Rust CLI fixed-point CIELAB $a^*$ analyzer | P1 | **Implemented** | `attester-b/` independent crate & runner |
 | **Calibration** | 50-scene empirical calibration report | P1 | **Implemented** | Mean divergence 152 bps across synthetic scenes |
 | **Public Verifier** | `pow-verify` public auditing CLI | P1 | **Implemented** | `tools/pow-verify/verify.py` |
-| **ESP32-CAM** | PlatformIO Arduino firmware (C++) | P1 | **Stub / Unverified** | Unverified on physical silicon |
+| **Edge Hardware HAL** | Dual-Target ESP32 & ESP32-S3 Firmware | P1 | **Implemented** | Phase 2 (HAL, PSRAM, Benchmarks, CLI) |
+| **Silicon Hardening** | AES-XTS Flash Encryption & Secure Boot | P1 | **Implemented** | Phase 2 (eFuses, NVS monotonic counter, anti-rollback) |
+| **Cellular Uplink** | Quectel BG95 / SIM7080G & Failover Engine | P1 | **Implemented** | Phase 2 (LTE-M/NB-IoT, APN auto-negotiation, Wi-Fi fallback) |
+| **Power Management** | ULP Deep-Sleep (< 0.15mA) & Brownout Cutoff | P1 | **Implemented** | Phase 2 (PMOS rail switches, battery ADC telemetry) |
+| **Solar & Packaging** | CN3791 MPPT, IP67 Enclosure & Sub-$40 BOM | P1 | **Implemented** | Phase 2 ($33.94 @ 1k BOM, Gore vent, KiCad schematic) |
+| **Optical Gates** | Condensation, Glare & Homography Matching | P1 | **Implemented** | Phase 2 (100-scene stress test, 100% specificity) |
 | **Dashboard** | React + Vite + TypeScript web interface | P2 | **Implemented** | Create Job, Job Detail, Arbiter, Registry |
 | **Metric 2 & 3** | `bare_soil_fraction`, `canopy_gap_fraction` | P2 | **Specified Stub** | Defined in `docs/spec/metrics.md` |
 
@@ -112,6 +117,15 @@ proof-of-weeding/
 
 ## 7. Key Documentation
 
+- [Phase 2 Engineering Sign-Off Report (35 PRs)](docs/PHASE_2_REPORT.md)
+- [Hardware Security & Flash Encryption Architecture](docs/HARDWARE_SECURITY.md)
+- [Hardware Reference Design & KiCad Schematic](docs/HARDWARE_DESIGN.md)
+- [Solar MPPT Charging Controller Specification](docs/SOLAR_MPPT_DESIGN.md)
+- [IP67 Waterproof Enclosure & CAD Specification](hardware/mechanical/ENCLOSURE_SPEC.md)
+- [Thermal & Condensation Mitigation Specification](docs/THERMAL_CONDENSATION_SPEC.md)
+- [Production Bill of Materials (Sub-$40 Target)](docs/BOM.md)
+- [Factory Assembly, Flashing & Deployment Guide](docs/ASSEMBLY_GUIDE.md)
+- [100-Scene Environmental Stress Report](docs/environmental-stress-report.json)
 - [Threat Model (12 Attack Vectors & Mitigations)](docs/THREAT_MODEL.md)
 - [Ecosystem Fit & Reusable Evidence Layer](docs/ECOSYSTEM_FIT.md)
 - [Related Work in the Stellar/Soroban Ecosystem](docs/RELATED_WORK.md)
