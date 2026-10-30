@@ -1,5 +1,6 @@
 """Unit tests for Field Optical Robustness & Environmental Quality Gates (Track E)."""
 
+import json
 import math
 import os
 import sys
@@ -134,6 +135,22 @@ class TestEnvironmentalRobustness(unittest.TestCase):
         is_fresh, diag = adaptor.evaluate_challenge_freshness(dev_id, now - 100, 300, now)
         self.assertTrue(is_fresh)
         self.assertEqual(diag["remaining_sec"], 200)
+
+    def test_environmental_suite_execution(self):
+        suite_path = os.path.join(
+            os.path.dirname(__file__), "..", "tools", "synthetic-scenes", "environmental_suite.py"
+        )
+        self.assertTrue(os.path.exists(suite_path))
+        rep_path = os.path.join(
+            os.path.dirname(__file__), "..", "docs", "environmental-stress-report.json"
+        )
+        self.assertTrue(os.path.exists(rep_path))
+        with open(rep_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        self.assertEqual(data["total_scenes"], 100)
+        self.assertEqual(data["gate_specificity_compromised_rejection_pct"], 100.0)
+        self.assertEqual(data["uncompromised_shadow_pass_pct"], 100.0)
 
 
 if __name__ == "__main__":

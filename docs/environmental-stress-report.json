@@ -1,0 +1,32 @@
+{
+  "total_scenes": 100,
+  "categories": {
+    "diurnal_shadows": {
+      "total": 25,
+      "accepted": 25,
+      "rejected": 0
+    },
+    "lens_fog_condensation": {
+      "total": 25,
+      "accepted": 0,
+      "rejected": 25
+    },
+    "solar_glare_flares": {
+      "total": 25,
+      "accepted": 0,
+      "rejected": 25
+    },
+    "rain_droplet_splatter": {
+      "total": 25,
+      "accepted": 0,
+      "rejected": 25
+    }
+  },
+  "quality_gate_diagnostics": {
+    "fog_rejections": 25,
+    "glare_rejections": 25,
+    "droplet_rejections": 25
+  },
+  "gate_specificity_compromised_rejection_pct": 100.0,
+  "uncompromised_shadow_pass_pct": 100.0
+}
