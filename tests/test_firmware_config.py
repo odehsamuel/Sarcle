@@ -123,6 +123,24 @@ class TestFirmwareConfiguration(unittest.TestCase):
         self.assertIn("Ed25519 Signature Generation", md_content)
         self.assertIn("Battery Life Implications", md_content)
 
+    def test_diagnostic_cli_interface(self):
+        cli_h = os.path.join(self.firmware_dir, "include", "diagnostic_cli.h")
+        self.assertTrue(os.path.exists(cli_h))
+
+        with open(cli_h, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Commands supported
+        for cmd in ["help", "info", "cam", "mem", "bench", "nvs", "reboot"]:
+            self.assertIn(f'"{cmd}"', content)
+
+        # Check integration into main.cpp
+        with open(self.main_path, "r", encoding="utf-8") as f:
+            main_content = f.read()
+
+        self.assertIn('#include "diagnostic_cli.h"', main_content)
+        self.assertIn("diag_cli.process_serial", main_content)
+
 
 if __name__ == "__main__":
     unittest.main()

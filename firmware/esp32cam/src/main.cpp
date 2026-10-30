@@ -30,11 +30,13 @@
 #include "board_pins.h"
 #include "camera_hal.h"
 #include "psram_allocator.h"
+#include "diagnostic_cli.h"
 
 #define DOMAIN_TAG "PoW-OBS-v2" // 10 bytes ASCII
 #define CANONICAL_MSG_LEN 115
 
 CameraHAL camera_hal;
+DiagnosticCLI diag_cli;
 Preferences prefs;
 uint8_t device_pk[32];
 uint8_t device_sk[32];
@@ -194,9 +196,20 @@ void setup() {
     Serial.printf("\n[WIFI] Connected! IP: %s\n", WiFi.localIP().toString().c_str());
 
     sync_ntp_time();
+    diag_cli.print_help();
+    diag_cli.print_prompt();
 }
 
 void loop() {
+    diag_cli.process_serial(camera_hal, prefs, device_pk, monotonic_counter);
+
+    static uint32_t last_capture_ms = 0;
+    if (millis() - last_capture_ms < 60000 && last_capture_ms != 0) {
+        delay(10);
+        return;
+    }
+    last_capture_ms = millis();
+
     Serial.println("\n[LOOP] Starting evidence capture sequence...");
 
     uint8_t challenge[16];
@@ -242,6 +255,6 @@ void loop() {
 
     camera_hal.release(cap.fb);
 
-    Serial.println("[SUCCESS] Capture sequence complete. Sleeping...");
-    delay(60000); // 1 minute interval
+    Serial.println("[SUCCESS] Capture sequence complete.");
+    diag_cli.print_prompt();
 }
