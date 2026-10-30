@@ -3,6 +3,7 @@
 import math
 import os
 import sys
+import time
 import unittest
 import numpy as np
 import cv2
@@ -112,6 +113,27 @@ class TestEnvironmentalRobustness(unittest.TestCase):
         roi = [(0.2, 0.2), (0.8, 0.2), (0.8, 0.8), (0.2, 0.8)]
         warped_roi = warp_roi_polygon(roi, H)
         self.assertEqual(len(warped_roi), 4)
+
+    def test_challenge_window_adaptor(self):
+        from challenge_adaptor import ChallengeWindowAdaptor
+
+        adaptor = ChallengeWindowAdaptor(base_challenge_ttl_sec=300)
+        dev_id = "00" * 32
+
+        # Record successive network latency samples
+        prof1 = adaptor.record_network_round_trip(dev_id, 4.0, success=True)
+        self.assertEqual(prof1["rtt_ema_sec"], 4.0)
+        self.assertEqual(prof1["latency_risk"], "LOW")
+
+        # Record high latency spike (e.g. 45-second cellular stall)
+        prof2 = adaptor.record_network_round_trip(dev_id, 45.0, success=False)
+        self.assertGreater(prof2["rtt_ema_sec"], 4.0)
+
+        # Freshness evaluation
+        now = int(time.time())
+        is_fresh, diag = adaptor.evaluate_challenge_freshness(dev_id, now - 100, 300, now)
+        self.assertTrue(is_fresh)
+        self.assertEqual(diag["remaining_sec"], 200)
 
 
 if __name__ == "__main__":
