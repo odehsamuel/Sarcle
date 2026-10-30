@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
 
-from analyzer_b import analyze_cielab_cover, compute_analyzer_b_hash
+from analyzer_b import DEFAULT_THRESHOLD, analyze_cielab_cover, compute_analyzer_b_hash
 from chain_client import ChainClient
 
 
@@ -20,7 +20,7 @@ class AttesterBRunner:
         self,
         chain: ChainClient,
         attester_addr: str = "G_ATTESTER_B_RUST",
-        threshold: int = -50,
+        threshold: int = DEFAULT_THRESHOLD,
     ):
         self.chain = chain
         self.attester_addr = attester_addr
@@ -41,4 +41,3 @@ class AttesterBRunner:
             value_bps=cover_bps,
         )
         return cover_bps
-

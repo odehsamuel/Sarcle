@@ -85,6 +85,24 @@ class TestStage7AttesterBAndVerifier(unittest.TestCase):
         self.assertEqual(obs["status"], "Accepted")
         self.assertIsNotNone(obs["accepted_value_bps"])
 
+    def test_pow_verify_json_and_auto_roi(self):
+        from verify import verify_job_evidence
+        # Run verifier in test mode against Job 1 if observations are logged
+        obs_log_path = os.path.join(
+            os.path.dirname(__file__), "..", "attester-a", "storage", "observations.json"
+        )
+        if os.path.exists(obs_log_path):
+            img_dir = os.path.join(
+                os.path.dirname(__file__), "..", "attester-a", "storage", "images"
+            )
+            success = verify_job_evidence(
+                job_id=1,
+                image_dir=img_dir,
+                roi_file=None,  # test auto-discovery
+                as_json=True,
+            )
+            self.assertTrue(success)
+
 
 if __name__ == "__main__":
     unittest.main()
